@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "79237463862",
+    "project_id": "techwave-fdc08",
+    "storage_bucket": "techwave-fdc08.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:79237463862:android:d827ef7903710c8424bd97",
+        "android_client_info": {
+          "package_name": "com.techwave.assignment"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "79237463862-ebr8hg904hkcjqbn3n7fp1s735co131k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDArnGWDsjKd4TVVqBSDfprNJfLAlVtSYs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "79237463862-ebr8hg904hkcjqbn3n7fp1s735co131k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

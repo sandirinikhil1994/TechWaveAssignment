@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">TechWave Assignment</string>
+    <string name="please_turn_on_gps">Please turn on GPS</string>
+    <string name="runtime_permission_required">Runtime permissions required.\n\nPlease provide them manually.</string>
+    <string name="background_permission_not_provided">Background permission not provided.\n\nPlease provide them manually.</string>
+    <string name="ok">OK</string>
+    <string name="no">No</string>
+    <string name="sent_location_to_firebase">Sent location to Firebase</string>
+    <string name="sent_calldata_to_firebase">Sent Call Data to Firebase</string>
+    <string name="couldnt_send_locdata_to_firebase">Couldn\'t send Location data to Firebase</string>
+    <string name="couldnt_send_calldata_to_firebase">Couldn\'t send Call data to Firebase</string>
+    <string name="incoming">Incoming</string>
+    <string name="outgoing">Outgoing</string>
+    <string name="missed">Missed</string>
+</resources>
