@@ -1,55 +1,47 @@
-package com.techwave.assignment.receivers;
+package com.techwave.assignment.receivers
 
-import static com.techwave.assignment.utils.AppClass.savedNumber;
-import static com.techwave.assignment.utils.Globals.delayMainThread;
-import static com.techwave.assignment.utils.Globals.getStr;
-import static com.techwave.assignment.utils.Globals.saveCallData;
+import android.content.Context
+import android.util.Log
+import com.techwave.assignment.R
+import com.techwave.assignment.interfaces.Delay
+import com.techwave.assignment.models.CallData
+import com.techwave.assignment.utils.AppClass
+import com.techwave.assignment.utils.Globals
+import com.techwave.assignment.utils.Globals.getStr
 
-import android.content.Context;
-import android.util.Log;
-
-import com.techwave.assignment.R;
-import com.techwave.assignment.models.CallData;
-
-public class CallReceiver extends PhonecallReceiver {
-
-    @Override
-    protected void onIncomingCallReceived(Context ctx, long start) {
-        delayMainThread(1500, () -> Log.d("sdfdsfdsc", "incRec->" + savedNumber + " (" + start + ")"));
+class CallReceiver : PhonecallReceiver() {
+    override fun onIncomingCallReceived(ctx: Context?, start: Long) {
+        execLater("${getStr(R.string.incoming)} received", start, 0, true)
     }
 
-    @Override
-    protected void onIncomingCallAnswered(Context ctx, long start) {
-        delayMainThread(1500, () -> Log.d("sdfdsfdsc", "incAns->" + savedNumber + " (" + start + ")"));
+    override fun onIncomingCallAnswered(ctx: Context?, start: Long) {
+        execLater("${getStr(R.string.incoming)} start", start, 0, true)
     }
 
-    @Override
-    protected void onIncomingCallEnded(Context ctx, long start, long end) {
-        delayMainThread(1500, () -> {
-            Log.d("sdfdsfdsc", "incEnd->" + savedNumber + " (" + start + "," + end + ")");
-            saveCallData(new CallData(savedNumber, getStr(R.string.incoming), start, end - start));
-        });
+    override fun onIncomingCallEnded(ctx: Context?, start: Long, end: Long) {
+        execLater("${getStr(R.string.incoming)} end", start, end - start, false)
     }
 
-    @Override
-    protected void onOutgoingCallStarted(Context ctx, long start) {
-        delayMainThread(1500, () -> Log.d("sdfdsfdsc", "outStart->" + savedNumber + " (" + start + ")"));
+    override fun onOutgoingCallStarted(ctx: Context?, start: Long) {
+        execLater("${getStr(R.string.outgoing)} start", start, 0, true)
     }
 
-    @Override
-    protected void onOutgoingCallEnded(Context ctx, long start, long end) {
-        delayMainThread(1500, () -> {
-            Log.d("sdfdsfdsc", "outEnd->" + savedNumber + " (" + start + "," + end + ")");
-            saveCallData(new CallData(savedNumber, getStr(R.string.outgoing), start, end - start));
-        });
+    override fun onOutgoingCallEnded(ctx: Context?, start: Long, end: Long) {
+        execLater("${getStr(R.string.outgoing)} end", start, end - start, false)
     }
 
-    @Override
-    protected void onMissedCall(Context ctx, long start) {
-        delayMainThread(1500, () -> {
-            Log.d("sdfdsfdsc", "miss->" + savedNumber + " (" + start + ")");
-            saveCallData(new CallData(savedNumber, getStr(R.string.missed), start, 0));
-        });
+    override fun onMissedCall(ctx: Context?, start: Long) {
+        execLater(getStr(R.string.missed), start, 0, false)
     }
 
+    private fun execLater(type: String, start: Long, end: Long, justLog: Boolean) {
+        Globals.delayMainThread(1500, object : Delay {
+            override fun done() {
+                var tempS = if (end != 0L) ", $end" else ""
+                Log.d("sdfdsfdsc", "$type-> ${AppClass.savedNumber} ($start $tempS)")
+                if (!justLog)
+                    Globals.saveCallData(CallData(AppClass.savedNumber!!, type, start, end))
+            }
+        })
+    }
 }

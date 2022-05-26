@@ -1,7 +1,9 @@
 plugins {
     id 'com.android.application'
+    id 'kotlin-android-extensions'
+    id 'kotlin-android'
+    id 'kotlin-kapt'
 }
-
 android {
     compileSdk 32
 
@@ -28,6 +30,11 @@ android {
     buildFeatures {
         viewBinding true
     }
+    sourceSets {
+        getByName("main") {
+            java.srcDir("src/main/kotlin")
+        }
+    }
 }
 
 dependencies {
@@ -45,5 +52,9 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:30.0.2') //Firebase BOM
     implementation 'com.google.firebase:firebase-database' //Firebase DB
     implementation 'com.google.firebase:firebase-core'
+
+
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.21")
 }
 apply plugin: 'com.google.gms.google-services'

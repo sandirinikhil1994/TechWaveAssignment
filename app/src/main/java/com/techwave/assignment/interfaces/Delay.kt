@@ -1,7 +1,5 @@
-package com.techwave.assignment.interfaces;
+package com.techwave.assignment.interfaces
 
-public interface Delay {
-
-    void done();
-
+interface Delay {
+    fun done()
 }

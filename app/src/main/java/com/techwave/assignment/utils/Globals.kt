@@ -1,149 +1,141 @@
-package com.techwave.assignment.utils;
+package com.techwave.assignment.utils
 
-import static com.techwave.assignment.utils.AppClass.dbRef_CallData;
-import static com.techwave.assignment.utils.AppClass.dbRef_LocData;
-import static com.techwave.assignment.utils.Preferences.PREF_LATITUDE;
-import static com.techwave.assignment.utils.Preferences.PREF_LONGITUDE;
-import static com.techwave.assignment.utils.Preferences.saveDoublePreferences;
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Dialog
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.work.*
+import com.techwave.assignment.R
+import com.techwave.assignment.interfaces.BtnClk
+import com.techwave.assignment.interfaces.Delay
+import com.techwave.assignment.models.CallData
+import com.techwave.assignment.models.LocationCoords
+import com.techwave.assignment.workmanagers.WorkManagerLocation
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
-import android.app.Activity;
-import android.app.Dialog;
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.work.Constraints;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-
-import com.techwave.assignment.R;
-import com.techwave.assignment.interfaces.BtnClk;
-import com.techwave.assignment.interfaces.Delay;
-import com.techwave.assignment.models.CallData;
-import com.techwave.assignment.models.LocationCoords;
-import com.techwave.assignment.workmanagers.WorkManager_Location;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-public class Globals {
-
-    public static Context global_ctx;
-
-    public static void initWork() {
-        OneTimeWorkRequest.Builder wrkReq = new OneTimeWorkRequest.Builder(WorkManager_Location.class).setInitialDelay(5, TimeUnit.MINUTES);
-        wrkReq.setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build());
-        WorkManager.getInstance(global_ctx).enqueueUniqueWork("loc_5min", ExistingWorkPolicy.REPLACE, wrkReq.build());
+@SuppressLint("StaticFieldLeak")
+object Globals {
+    var global_ctx: Context? = null
+    fun initWork() {
+        val wrkReq = OneTimeWorkRequest.Builder(WorkManagerLocation::class.java)
+            .setInitialDelay(5, TimeUnit.MINUTES)
+        wrkReq.setConstraints(
+            Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        )
+        WorkManager.getInstance(global_ctx!!)
+            .enqueueUniqueWork("loc_5min", ExistingWorkPolicy.REPLACE, wrkReq.build())
     }
 
-    public static String getFullDateFromTs(long ts) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy hh:mm:ss a", Locale.getDefault());
-        return formatter.format(new Date(ts));
+    fun getFullDateFromTs(ts: Long): String {
+        val formatter = SimpleDateFormat("dd MMM yyyy hh:mm:ss a", Locale.getDefault())
+        return formatter.format(Date(ts))
     }
 
-    public static void saveLoc(LocationCoords locationCoords) {
-        locationCoords.setTs(getTS() + "");
-        dbRef_LocData.push().setValue(locationCoords);
+    fun saveLoc(locationCoords: LocationCoords) {
+        locationCoords.ts = tS.toString() + ""
+        AppClass.Companion.dbRef_LocData!!.push().setValue(locationCoords)
     }
 
-    public static void saveCallData(CallData callData) {
-        callData.setTs(getTS());
-        dbRef_CallData.push().setValue(callData);
+    fun saveCallData(callData: CallData) {
+        callData.ts = tS
+        AppClass.Companion.dbRef_CallData!!.push().setValue(callData)
     }
 
-    public static void toast(String msg) {
-        toastExecutor(Toast.LENGTH_LONG, msg);
+    fun toast(msg: String?) {
+        toastExecutor(Toast.LENGTH_LONG, msg)
     }
 
-    public static void toastShort(String msg) {
-        toastExecutor(Toast.LENGTH_SHORT, msg);
+    fun toastShort(msg: String?) {
+        toastExecutor(Toast.LENGTH_SHORT, msg)
     }
 
-    public static void toastExecutor(int a, String msg) {
+    private fun toastExecutor(a: Int, msg: String?) {
         try {
-            if (global_ctx instanceof Activity)
-                ((Activity) global_ctx).runOnUiThread(() -> Toast.makeText(global_ctx, msg, a).show());
-            else Toast.makeText(global_ctx, msg, a).show();
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (global_ctx is Activity) (global_ctx as Activity?)!!.runOnUiThread {
+                Toast.makeText(
+                    global_ctx, msg, a
+                ).show()
+            } else Toast.makeText(global_ctx, msg, a).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    public static void delayMainThread(long millis, final Delay delay) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Handler handler = new Handler(Looper.getMainLooper());
-        executorService.execute(() -> handler.post(() -> new Handler().postDelayed(delay::done, millis)));
-    }
-
-    public static void saveLocalLocation(LocationCoords locationCoords) {
-        saveDoublePreferences(PREF_LATITUDE, locationCoords.getLat());
-        saveDoublePreferences(PREF_LONGITUDE, locationCoords.getLon());
-    }
-
-    public static void showAlert(boolean a, String message) {
-        if (!message.isEmpty()) {
-            final Dialog dialog = new Dialog(global_ctx, R.style.AlertDialogCustom);
-            dialog.setContentView(R.layout.custom_alert);
-            dialog.setCancelable(false);
-            TextView tv1 = dialog.findViewById(R.id.tv1);
-            if (message.length() > 200)
-                tv1.setTextSize(12f);
-            Button b1 = dialog.findViewById(R.id.b1);
-            tv1.setText(message);
-            b1.setOnClickListener(v -> {
-                if (a) dialog.dismiss();
-                else close();
-            });
-            try {
-                dialog.show();
-            } catch (Exception e) {
-                e.printStackTrace();
+    fun delayMainThread(millis: Long, delay: Delay) {
+        val executorService = Executors.newSingleThreadExecutor()
+        val handler = Handler(Looper.getMainLooper())
+        executorService.execute {
+            handler.post {
+                Handler().postDelayed(
+                    { delay.done() }, millis
+                )
             }
         }
     }
 
-    public static void showAlertIntface(String message, final BtnClk btnClk) {
-        final Dialog dialog = new Dialog(global_ctx, R.style.AlertDialogCustom);
-        dialog.setContentView(R.layout.custom_alert);
-        dialog.setCancelable(false);
-        TextView tv1 = dialog.findViewById(R.id.tv1);
-        if (message.length() > 200)
-            tv1.setTextSize(12f);
-        Button b1 = dialog.findViewById(R.id.b1);
-        tv1.setText(message);
-        b1.setOnClickListener(v -> {
-            dialog.dismiss();
-            btnClk.btnclk(0);
-        });
-        try {
-            dialog.show();
-        } catch (Exception e) {
-            e.printStackTrace();
+    fun saveLocalLocation(locationCoords: LocationCoords) {
+        Preferences.saveDoublePreferences(Preferences.PREF_LATITUDE, locationCoords.lat)
+        Preferences.saveDoublePreferences(Preferences.PREF_LONGITUDE, locationCoords.lon)
+    }
+
+    fun showAlert(a: Boolean, message: String) {
+        if (!message.isEmpty()) {
+            val dialog = Dialog(global_ctx!!, R.style.AlertDialogCustom)
+            dialog.setContentView(R.layout.custom_alert)
+            dialog.setCancelable(false)
+            val tv1 = dialog.findViewById<TextView>(R.id.tv1)
+            if (message.length > 200) tv1.textSize = 12f
+            val b1 = dialog.findViewById<Button>(R.id.b1)
+            tv1.text = message
+            b1.setOnClickListener { v: View? -> if (a) dialog.dismiss() else close() }
+            try {
+                dialog.show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
-    public static void close() {
+    fun showAlertIntface(message: String, btnClk: BtnClk) {
+        val dialog = Dialog(global_ctx!!, R.style.AlertDialogCustom)
+        dialog.setContentView(R.layout.custom_alert)
+        dialog.setCancelable(false)
+        val tv1 = dialog.findViewById<TextView>(R.id.tv1)
+        if (message.length > 200) tv1.textSize = 12f
+        val b1 = dialog.findViewById<Button>(R.id.b1)
+        tv1.text = message
+        b1.setOnClickListener { v: View? ->
+            dialog.dismiss()
+            btnClk.btnclk(0)
+        }
         try {
-            ((Activity) global_ctx).finish();
-        } catch (Exception e) {
-            e.printStackTrace();
+            dialog.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    public static String getStr(int string) {
-        return global_ctx.getResources().getString(string);
+    private fun close() {
+        try {
+            (global_ctx as Activity?)!!.finish()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
-    public static long getTS() {
-        return System.currentTimeMillis();
+    fun getStr(string: Int): String {
+        return global_ctx!!.resources.getString(string)
     }
+
+    val tS: Long
+        get() = System.currentTimeMillis()
 }
